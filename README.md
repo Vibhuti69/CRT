@@ -221,17 +221,4 @@ TailorManagementSystem/
 
 ---
 
-## 👤 Author
 
-**Shivam Yerne**  
-Computer Science Engineering (Final Year)  
-G H Raisoni University, Amravati
-
-- GitHub: [github.com/shivam1-bit](https://github.com/shivam1-bit)
-- LinkedIn: [linkedin.com/in/shivamyerne](https://linkedin.com/in/shivamyerne)
-
----
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
