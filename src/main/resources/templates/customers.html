@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Manage customers in the Tailor Management System - Add, edit, delete, and search customers." />
+    <title>Customers – Tailor Management System</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<!-- Sidebar Overlay (Mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">✂️</div>
+        <div class="logo-text">
+            TailorMS
+            <span>Management System</span>
+        </div>
+    </div>
+    <div class="sidebar-nav">
+        <div class="nav-label">Main Menu</div>
+        <a href="/" class="nav-item">
+            <span class="nav-icon">🏠</span> Dashboard
+        </a>
+        <a href="/customers" class="nav-item active">
+            <span class="nav-icon">👥</span> Customers
+        </a>
+        <a href="/orders" class="nav-item">
+            <span class="nav-icon">📋</span> Orders
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <p>Tailor Management System v1.0</p>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <h1 class="page-title">Customers</h1>
+        </div>
+        <div class="topbar-right">
+            <span class="topbar-date" id="topbarDate"></span>
+            <div class="user-avatar">T</div>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div class="card">
+            <div class="section-header">
+                <h2 class="section-title">All Customers</h2>
+                <div class="section-actions">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search by name or mobile..." />
+                    </div>
+                    <button class="btn btn-primary" id="btnAddCustomer">
+                        ＋ Add Customer
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Address</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersBody">
+                        <tr class="loading-row">
+                            <td colspan="5"><div class="spinner"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================
+     ADD CUSTOMER MODAL
+     ======================== -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New Customer</h3>
+            <button class="modal-close" id="addModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Full Name <span>*</span></label>
+                <input type="text" id="addName" class="form-control" placeholder="Enter customer name" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mobile Number <span>*</span></label>
+                <input type="text" id="addMobile" class="form-control" placeholder="Enter mobile number" maxlength="15" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <input type="text" id="addAddress" class="form-control" placeholder="Enter address" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="addModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="btnSaveCustomer">Save Customer</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================
+     EDIT CUSTOMER MODAL
+     ======================== -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Customer</h3>
+            <button class="modal-close" id="editModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editId" />
+            <div class="form-group">
+                <label class="form-label">Full Name <span>*</span></label>
+                <input type="text" id="editName" class="form-control" placeholder="Enter customer name" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mobile Number <span>*</span></label>
+                <input type="text" id="editMobile" class="form-control" placeholder="Enter mobile number" maxlength="15" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <input type="text" id="editAddress" class="form-control" placeholder="Enter address" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="editModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="btnUpdateCustomer">Update Customer</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================
+     CONFIRM DELETE MODAL
+     ======================== -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal confirm-dialog">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirm Delete</h3>
+            <button class="modal-close" id="confirmModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">Are you sure you want to delete this customer?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="confirmNo">Cancel</button>
+            <button class="btn btn-danger" id="confirmYes">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/js/app.js"></script>
+<script>
+    let allCustomers = [];
+
+    // Load all customers
+    async function loadCustomers() {
+        try {
+            allCustomers = await apiGet('/api/customers');
+            renderTable(allCustomers);
+        } catch (err) {
+            showToast('Failed to load customers: ' + err.message, 'error');
+        }
+    }
+
+    // Render customers table
+    function renderTable(customers) {
+        const tbody = document.getElementById('customersBody');
+        if (!customers.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <p>No customers found. Click <strong>Add Customer</strong> to get started.</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+        tbody.innerHTML = customers.map(c => `
+            <tr>
+                <td><span class="td-id">#${c.id}</span></td>
+                <td class="td-name">${sanitize(c.name)}</td>
+                <td>📞 ${sanitize(c.mobile)}</td>
+                <td>${sanitize(c.address || '—')}</td>
+                <td>
+                    <div class="action-btns">
+                        <button class="btn-icon edit" title="Edit" data-id="${c.id}">✏️</button>
+                        <button class="btn-icon delete" title="Delete" data-id="${c.id}" data-name="${sanitize(c.name)}">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        // Attach event listeners via delegation
+        tbody.querySelectorAll('.btn-icon.edit').forEach(btn => {
+            btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
+        });
+        tbody.querySelectorAll('.btn-icon.delete').forEach(btn => {
+            btn.addEventListener('click', () => deleteCustomer(parseInt(btn.dataset.id), btn.dataset.name));
+        });
+    }
+
+    // Sanitize HTML to prevent XSS
+    function sanitize(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    // Open Add modal
+    function openAddModal() {
+        document.getElementById('addName').value = '';
+        document.getElementById('addMobile').value = '';
+        document.getElementById('addAddress').value = '';
+        openModal('addModal');
+    }
+
+    // Add customer
+    async function addCustomer() {
+        const name = document.getElementById('addName').value.trim();
+        const mobile = document.getElementById('addMobile').value.trim();
+        const address = document.getElementById('addAddress').value.trim();
+
+        if (!name) { showToast('Customer name is required.', 'error'); return; }
+        if (!mobile) { showToast('Mobile number is required.', 'error'); return; }
+
+        try {
+            await apiPost('/api/customers', { name, mobile, address });
+            closeModal('addModal');
+            showToast('Customer added successfully!', 'success');
+            loadCustomers();
+        } catch (err) {
+            showToast('Error: ' + err.message, 'error');
+        }
+    }
+
+    // Open Edit modal
+    async function openEditModal(id) {
+        try {
+            const customer = await apiGet(`/api/customers/${id}`);
+            document.getElementById('editId').value = customer.id;
+            document.getElementById('editName').value = customer.name;
+            document.getElementById('editMobile').value = customer.mobile;
+            document.getElementById('editAddress').value = customer.address || '';
+            openModal('editModal');
+        } catch (err) {
+            showToast('Failed to load customer: ' + err.message, 'error');
+        }
+    }
+
+    // Update customer
+    async function updateCustomer() {
+        const id = document.getElementById('editId').value;
+        const name = document.getElementById('editName').value.trim();
+        const mobile = document.getElementById('editMobile').value.trim();
+        const address = document.getElementById('editAddress').value.trim();
+
+        if (!name) { showToast('Customer name is required.', 'error'); return; }
+        if (!mobile) { showToast('Mobile number is required.', 'error'); return; }
+
+        try {
+            await apiPut(`/api/customers/${id}`, { name, mobile, address });
+            closeModal('editModal');
+            showToast('Customer updated successfully!', 'success');
+            loadCustomers();
+        } catch (err) {
+            showToast('Error: ' + err.message, 'error');
+        }
+    }
+
+    // Delete customer
+    function deleteCustomer(id, name) {
+        showConfirm(`Are you sure you want to delete customer "${name}"? All associated orders will also be deleted.`, async () => {
+            try {
+                await apiDelete(`/api/customers/${id}`);
+                showToast('Customer deleted successfully!', 'success');
+                loadCustomers();
+            } catch (err) {
+                showToast('Error: ' + err.message, 'error');
+            }
+        });
+    }
+
+    // Search customers
+    document.getElementById('searchInput').addEventListener('input', async function () {
+        const keyword = this.value.trim();
+        if (keyword.length === 0) {
+            renderTable(allCustomers);
+        } else if (keyword.length >= 2) {
+            try {
+                const results = await apiGet(`/api/customers/search?keyword=${encodeURIComponent(keyword)}`);
+                renderTable(results);
+            } catch (err) {
+                showToast('Search failed: ' + err.message, 'error');
+            }
+        }
+    });
+
+    // Wire up buttons
+    document.getElementById('btnAddCustomer').addEventListener('click', openAddModal);
+    document.getElementById('btnSaveCustomer').addEventListener('click', addCustomer);
+    document.getElementById('btnUpdateCustomer').addEventListener('click', updateCustomer);
+    document.getElementById('addModalClose').addEventListener('click', () => closeModal('addModal'));
+    document.getElementById('addModalCancel').addEventListener('click', () => closeModal('addModal'));
+    document.getElementById('editModalClose').addEventListener('click', () => closeModal('editModal'));
+    document.getElementById('editModalCancel').addEventListener('click', () => closeModal('editModal'));
+    document.getElementById('confirmModalClose').addEventListener('click', () => closeModal('confirmModal'));
+
+    document.addEventListener('DOMContentLoaded', loadCustomers);
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+# Maven build output
+target/
+*.class
+
+# IDE files
+.idea/
+.idea/**
+*.iml
+.vscode/
+.vscode/**
+*.ipr
+*.iws
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+application-local.properties
+
+# Spring Boot DevTools
+.spring-boot-devtools.properties
+
+# Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machine crash logs
+hs_err_pid*
+replay_pid*

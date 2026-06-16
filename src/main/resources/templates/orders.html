@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Manage orders in the Tailor Management System - Add, edit, delete, and search orders with status tracking." />
+    <title>Orders – Tailor Management System</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<!-- Sidebar Overlay (Mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">✂️</div>
+        <div class="logo-text">
+            TailorMS
+            <span>Management System</span>
+        </div>
+    </div>
+    <div class="sidebar-nav">
+        <div class="nav-label">Main Menu</div>
+        <a href="/" class="nav-item">
+            <span class="nav-icon">🏠</span> Dashboard
+        </a>
+        <a href="/customers" class="nav-item">
+            <span class="nav-icon">👥</span> Customers
+        </a>
+        <a href="/orders" class="nav-item active">
+            <span class="nav-icon">📋</span> Orders
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <p>Tailor Management System v1.0</p>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <h1 class="page-title">Orders</h1>
+        </div>
+        <div class="topbar-right">
+            <span class="topbar-date" id="topbarDate"></span>
+            <div class="user-avatar">T</div>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div class="card">
+            <div class="section-header">
+                <h2 class="section-title">All Orders</h2>
+                <div class="section-actions">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search by customer or garment..." />
+                    </div>
+                    <button class="btn btn-primary" id="btnAddOrder">
+                        ＋ Add Order
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Garment Type</th>
+                            <th>Order Date</th>
+                            <th>Delivery Date</th>
+                            <th>Amount (₹)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody">
+                        <tr class="loading-row">
+                            <td colspan="8"><div class="spinner"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================
+     ADD ORDER MODAL
+     ======================== -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal" style="max-width: 540px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New Order</h3>
+            <button class="modal-close" id="addModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Customer <span>*</span></label>
+                <select id="addCustomer" class="form-control">
+                    <option value="">Select a customer...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Garment Type <span>*</span></label>
+                <input type="text" id="addGarment" class="form-control" placeholder="e.g. Suit, Kurta, Dress..." />
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="form-group">
+                    <label class="form-label">Order Date <span>*</span></label>
+                    <input type="date" id="addOrderDate" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Delivery Date</label>
+                    <input type="date" id="addDeliveryDate" class="form-control" />
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="form-group">
+                    <label class="form-label">Amount (₹) <span>*</span></label>
+                    <input type="number" id="addAmount" class="form-control" placeholder="0.00" min="0" step="0.01" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status <span>*</span></label>
+                    <select id="addStatus" class="form-control">
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="addModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="btnSaveOrder">Save Order</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================
+     EDIT ORDER MODAL
+     ======================== -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal" style="max-width: 540px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Order</h3>
+            <button class="modal-close" id="editModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editId" />
+            <div class="form-group">
+                <label class="form-label">Customer <span>*</span></label>
+                <select id="editCustomer" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Garment Type <span>*</span></label>
+                <input type="text" id="editGarment" class="form-control" />
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="form-group">
+                    <label class="form-label">Order Date <span>*</span></label>
+                    <input type="date" id="editOrderDate" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Delivery Date</label>
+                    <input type="date" id="editDeliveryDate" class="form-control" />
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div class="form-group">
+                    <label class="form-label">Amount (₹) <span>*</span></label>
+                    <input type="number" id="editAmount" class="form-control" min="0" step="0.01" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status <span>*</span></label>
+                    <select id="editStatus" class="form-control">
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="editModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="btnUpdateOrder">Update Order</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================
+     CONFIRM DELETE MODAL
+     ======================== -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal confirm-dialog">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirm Delete</h3>
+            <button class="modal-close" id="confirmModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">Are you sure you want to delete this order?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="confirmNo">Cancel</button>
+            <button class="btn btn-danger" id="confirmYes">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/js/app.js"></script>
+<script>
+    let allOrders = [];
+    let allCustomers = [];
+
+    // Load customers for dropdowns
+    async function loadCustomers() {
+        try {
+            allCustomers = await apiGet('/api/customers');
+            populateCustomerDropdowns();
+        } catch (err) {
+            showToast('Failed to load customers: ' + err.message, 'error');
+        }
+    }
+
+    function populateCustomerDropdowns() {
+        const options = allCustomers.map(c =>
+            `<option value="${c.id}">${sanitize(c.name)} (${sanitize(c.mobile)})</option>`
+        ).join('');
+        document.getElementById('addCustomer').innerHTML = '<option value="">Select a customer...</option>' + options;
+        document.getElementById('editCustomer').innerHTML = options;
+    }
+
+    // Sanitize HTML to prevent XSS
+    function sanitize(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    // Load all orders
+    async function loadOrders() {
+        try {
+            allOrders = await apiGet('/api/orders');
+            renderTable(allOrders);
+        } catch (err) {
+            showToast('Failed to load orders: ' + err.message, 'error');
+        }
+    }
+
+    // Render orders table
+    function renderTable(orders) {
+        const tbody = document.getElementById('ordersBody');
+        if (!orders.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <p>No orders found. Click <strong>Add Order</strong> to get started.</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+        tbody.innerHTML = orders.map(o => `
+            <tr>
+                <td><span class="td-id">#${o.id}</span></td>
+                <td class="td-name">${o.customer ? sanitize(o.customer.name) : '—'}</td>
+                <td>${sanitize(o.garmentType)}</td>
+                <td>${formatDate(o.orderDate)}</td>
+                <td>${formatDate(o.deliveryDate)}</td>
+                <td>₹${parseFloat(o.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td>
+                    <span class="badge badge-${o.status === 'Completed' ? 'completed' : 'pending'}">
+                        ${o.status}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-btns">
+                        <button class="btn-icon edit" title="Edit" data-id="${o.id}">✏️</button>
+                        <button class="btn-icon delete" title="Delete" data-id="${o.id}">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        // Attach event listeners via delegation
+        tbody.querySelectorAll('.btn-icon.edit').forEach(btn => {
+            btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
+        });
+        tbody.querySelectorAll('.btn-icon.delete').forEach(btn => {
+            btn.addEventListener('click', () => deleteOrder(parseInt(btn.dataset.id)));
+        });
+    }
+
+    // Open Add modal
+    function openAddModal() {
+        document.getElementById('addCustomer').value = '';
+        document.getElementById('addGarment').value = '';
+        document.getElementById('addOrderDate').value = todayISO();
+        document.getElementById('addDeliveryDate').value = '';
+        document.getElementById('addAmount').value = '';
+        document.getElementById('addStatus').value = 'Pending';
+        openModal('addModal');
+    }
+
+    // Add order
+    async function addOrder() {
+        const customerId = document.getElementById('addCustomer').value;
+        const garmentType = document.getElementById('addGarment').value.trim();
+        const orderDate = document.getElementById('addOrderDate').value;
+        const deliveryDate = document.getElementById('addDeliveryDate').value;
+        const amount = document.getElementById('addAmount').value;
+        const status = document.getElementById('addStatus').value;
+
+        if (!customerId) { showToast('Please select a customer.', 'error'); return; }
+        if (!garmentType) { showToast('Garment type is required.', 'error'); return; }
+        if (!orderDate) { showToast('Order date is required.', 'error'); return; }
+        if (!amount) { showToast('Amount is required.', 'error'); return; }
+
+        try {
+            await apiPost('/api/orders', {
+                customer: { id: parseInt(customerId) },
+                garmentType,
+                orderDate,
+                deliveryDate: deliveryDate || null,
+                amount: parseFloat(amount),
+                status
+            });
+            closeModal('addModal');
+            showToast('Order added successfully!', 'success');
+            loadOrders();
+        } catch (err) {
+            showToast('Error: ' + err.message, 'error');
+        }
+    }
+
+    // Open Edit modal
+    async function openEditModal(id) {
+        try {
+            const order = await apiGet(`/api/orders/${id}`);
+            document.getElementById('editId').value = order.id;
+            document.getElementById('editCustomer').value = order.customer ? order.customer.id : '';
+            document.getElementById('editGarment').value = order.garmentType;
+            document.getElementById('editOrderDate').value = order.orderDate;
+            document.getElementById('editDeliveryDate').value = order.deliveryDate || '';
+            document.getElementById('editAmount').value = order.amount;
+            document.getElementById('editStatus').value = order.status;
+            openModal('editModal');
+        } catch (err) {
+            showToast('Failed to load order: ' + err.message, 'error');
+        }
+    }
+
+    // Update order
+    async function updateOrder() {
+        const id = document.getElementById('editId').value;
+        const customerId = document.getElementById('editCustomer').value;
+        const garmentType = document.getElementById('editGarment').value.trim();
+        const orderDate = document.getElementById('editOrderDate').value;
+        const deliveryDate = document.getElementById('editDeliveryDate').value;
+        const amount = document.getElementById('editAmount').value;
+        const status = document.getElementById('editStatus').value;
+
+        if (!customerId) { showToast('Please select a customer.', 'error'); return; }
+        if (!garmentType) { showToast('Garment type is required.', 'error'); return; }
+        if (!orderDate) { showToast('Order date is required.', 'error'); return; }
+        if (!amount) { showToast('Amount is required.', 'error'); return; }
+
+        try {
+            await apiPut(`/api/orders/${id}`, {
+                customer: { id: parseInt(customerId) },
+                garmentType,
+                orderDate,
+                deliveryDate: deliveryDate || null,
+                amount: parseFloat(amount),
+                status
+            });
+            closeModal('editModal');
+            showToast('Order updated successfully!', 'success');
+            loadOrders();
+        } catch (err) {
+            showToast('Error: ' + err.message, 'error');
+        }
+    }
+
+    // Delete order
+    function deleteOrder(id) {
+        showConfirm('Are you sure you want to delete this order? This action cannot be undone.', async () => {
+            try {
+                await apiDelete(`/api/orders/${id}`);
+                showToast('Order deleted successfully!', 'success');
+                loadOrders();
+            } catch (err) {
+                showToast('Error: ' + err.message, 'error');
+            }
+        });
+    }
+
+    // Search orders
+    document.getElementById('searchInput').addEventListener('input', async function () {
+        const keyword = this.value.trim();
+        if (keyword.length === 0) {
+            renderTable(allOrders);
+        } else if (keyword.length >= 2) {
+            try {
+                const results = await apiGet(`/api/orders/search?keyword=${encodeURIComponent(keyword)}`);
+                renderTable(results);
+            } catch (err) {
+                showToast('Search failed: ' + err.message, 'error');
+            }
+        }
+    });
+
+    // Wire up buttons
+    document.getElementById('btnAddOrder').addEventListener('click', openAddModal);
+    document.getElementById('btnSaveOrder').addEventListener('click', addOrder);
+    document.getElementById('btnUpdateOrder').addEventListener('click', updateOrder);
+    document.getElementById('addModalClose').addEventListener('click', () => closeModal('addModal'));
+    document.getElementById('addModalCancel').addEventListener('click', () => closeModal('addModal'));
+    document.getElementById('editModalClose').addEventListener('click', () => closeModal('editModal'));
+    document.getElementById('editModalCancel').addEventListener('click', () => closeModal('editModal'));
+    document.getElementById('confirmModalClose').addEventListener('click', () => closeModal('confirmModal'));
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadCustomers();
+        await loadOrders();
+    });
+</script>
+</body>
+</html>
